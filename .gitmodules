@@ -1,0 +1,3 @@
+[submodule "aima-csharp"]
+	path = aima-csharp
+	url = https://github.com/aimacode/aima-csharp.git
