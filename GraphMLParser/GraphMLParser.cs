@@ -10,7 +10,7 @@ namespace GraphMLParser
 {
     public class GraphMLParser
     {
-        public static void ParseFile(string file)
+        public static (List<GraphNode>, List<GraphEdge>) ParseFile(string file)
         {
             if (!File.Exists(file))
                 throw new FileNotFoundException($"Could not find {file}");
@@ -45,8 +45,10 @@ namespace GraphMLParser
                 nodes.Add(node);
             }
 
-            if (docEdges == null) throw new Exception("node list is edge");
-            if (docNodes == null) throw new Exception("node list is null");
+            if (nodes == null) throw new Exception("node list is edge");
+            if (edges == null) throw new Exception("node list is null");
+
+            return (nodes, edges);
         }
 
         static GraphEdge GetGarphEdge(XElement? element, XNamespace ns)
