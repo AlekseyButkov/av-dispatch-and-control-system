@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\GraphMLParser\GraphMLParser.csproj" />
     <ProjectReference Include="..\GraphPrimitives\AVGraphPrimitives.csproj" />
   </ItemGroup>
 

@@ -5,12 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Graph;
 
 namespace GraphMLParser
 {
     public class GraphMLParser
     {
-        public static (List<GraphNode>, List<GraphEdge>) ParseFile(string file)
+        public static (List<GraphNode> Nodes, List<GraphEdge> Edges) ParseFile(string file)
         {
             if (!File.Exists(file))
                 throw new FileNotFoundException($"Could not find {file}");
