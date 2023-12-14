@@ -10,7 +10,7 @@ namespace AVController
     internal class DispatchAgent
     {
         RouteFinder routeFinder;
-        public DispatchAgent(List<GraphNode> nodes, List<GraphEdge> edges)
+        public DispatchAgent(List<GraphNode> nodes, List<GraphMLEdge> edges)
         {
             routeFinder = new RouteFinder(nodes, edges);
         }

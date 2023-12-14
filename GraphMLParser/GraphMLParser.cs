@@ -11,13 +11,13 @@ namespace GraphMLParser
 {
     public class GraphMLParser
     {
-        public static (List<GraphNode> Nodes, List<GraphEdge> Edges) ParseFile(string file)
+        public static (List<GraphNode> Nodes, List<GraphMLEdge> Edges) ParseFile(string file)
         {
             if (!File.Exists(file))
                 throw new FileNotFoundException($"Could not find {file}");
 
             List<GraphNode> nodes = new();
-            List<GraphEdge> edges = new();
+            List<GraphMLEdge> edges = new();
 
             XDocument doc = XDocument.Load(file);
             if (doc == null)
@@ -52,7 +52,7 @@ namespace GraphMLParser
             return (nodes, edges);
         }
 
-        static GraphEdge GetGarphEdge(XElement? element, XNamespace ns)
+        static GraphMLEdge GetGarphEdge(XElement? element, XNamespace ns)
         {
             if (element == null) throw new ArgumentNullException();
             var data = element.Elements(ns + "data");
@@ -73,7 +73,7 @@ namespace GraphMLParser
             var oneway = data.Where(x => x.Attribute("key")!.Value == "d10");
 
             var id = element.Attribute("id") == null ? 0 : long.Parse(element.Attribute("id")!.Value);
-            var edge = new GraphEdge(id, sourceNode, targetNode);
+            var edge = new GraphMLEdge(id, sourceNode, targetNode);
             edge.Service = service.Count() == 0 ? "" : service.First().Value;
             edge.Junction = junction.Count() == 0 ? "" : junction.First().Value;
             edge.Tunnel = tunnel.Count() == 0 ? false : tunnel.First().Value == "yes";

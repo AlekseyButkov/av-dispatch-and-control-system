@@ -5,29 +5,33 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using Graph;
-using aima.core.environment.map;
+using AVGraphPrimitives;
 
 namespace AVController
 {
     internal class RouteFinder
     {
-        ExtendableMap mWorldMap = new();
+        GraphMap mWorldMap = new();
         
-        public RouteFinder(List<GraphNode> nodes, List<GraphEdge> edges)
+        public RouteFinder(List<GraphNode> nodes, List<GraphMLEdge> edges)
         {
             InitWorldMap(nodes, edges);
         }
 
-        private void InitWorldMap(List<GraphNode> nodes, List<GraphEdge> edges)
+        private void InitWorldMap(List<GraphNode> nodes, List<GraphMLEdge> edges)
         {
             var sw = new Stopwatch();
             sw.Start();
+            foreach(var node in nodes)
+            {
+                mWorldMap.AddLocation(node);
+            }
             foreach(var edge in edges)
             {
                 if (edge.Oneway)
-                    mWorldMap.addUnidirectionalLink(edge.sourceNodeId.ToString(), edge.targetNodeId.ToString(), edge.Length);
+                    mWorldMap.AddUnidirectionalLink(edge);
                 else
-                    mWorldMap.addBidirectionalLink(edge.sourceNodeId.ToString(), edge.targetNodeId.ToString(), edge.Length);
+                    mWorldMap.AddBidirectionalLink(edge);
             }
             Console.WriteLine($"initialized route finder worldmap in {sw.ElapsedMilliseconds}");
         }
