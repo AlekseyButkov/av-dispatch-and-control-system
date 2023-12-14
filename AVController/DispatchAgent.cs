@@ -14,5 +14,14 @@ namespace AVController
         {
             routeFinder = new RouteFinder(nodes, edges);
         }
+
+        public void TestRoutes()
+        {
+            while (true)
+            {
+                routeFinder.TestRoutingBetweenRandomLocations();
+                Thread.Sleep(1000);
+            }
+        }
     }
 }

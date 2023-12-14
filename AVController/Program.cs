@@ -1,5 +1,4 @@
-﻿
-namespace AVController
+﻿namespace AVController
 {
     internal class Program
     {
@@ -10,8 +9,10 @@ namespace AVController
                 Console.WriteLine("No GraphML input file supplied");
                 return;
             }
-            var nodesAndEdges = GraphMLParser.GraphMLParser.ParseFile(args[0]);
+            GraphMLParser.GraphMLParser parser = new();
+            var nodesAndEdges = parser.ParseFile(args[0]);
             var dispatcher = new DispatchAgent(nodesAndEdges.Nodes, nodesAndEdges.Edges);
+            dispatcher.TestRoutes();
         }
     }
 }

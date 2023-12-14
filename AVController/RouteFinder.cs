@@ -12,10 +12,12 @@ namespace AVController
     internal class RouteFinder
     {
         GraphMap mWorldMap = new();
+        AStarSearch mAStarSearch;
         
         public RouteFinder(List<GraphNode> nodes, List<GraphMLEdge> edges)
         {
             InitWorldMap(nodes, edges);
+            mAStarSearch = new(mWorldMap);
         }
 
         private void InitWorldMap(List<GraphNode> nodes, List<GraphMLEdge> edges)
@@ -26,6 +28,7 @@ namespace AVController
             {
                 mWorldMap.AddLocation(node);
             }
+            mWorldMap.Clean();
             foreach(var edge in edges)
             {
                 if (edge.Oneway)
@@ -43,8 +46,24 @@ namespace AVController
 
         public void FindRoute(long startId, long endId)
         {
-
+            var path = mAStarSearch.FindShortestPath(startId, endId);
+            var start = mWorldMap.GetPosition(startId);
+            var end = mWorldMap.GetPosition(endId);
+            var distance = 0.0;
+            for (var i = 0; i < path.Count - 1; i++)
+            {
+                var stepDistance = mWorldMap.GetDistance(path[i], path[i + 1]);
+                distance += stepDistance;
+            }
+            Console.WriteLine($"Shortest path from {start.Y},{start.X} to {end.Y},{end.X}:\n{distance}m");
         }
 
+        public void TestRoutingBetweenRandomLocations()
+        {
+            var start = mWorldMap.RandomlyGenerateDestination();
+            var end = mWorldMap.RandomlyGenerateDestination();
+            Console.WriteLine($"Trying to route...");
+            FindRoute(start, end);
+        }
     }
 }

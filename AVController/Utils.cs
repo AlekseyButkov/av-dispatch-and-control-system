@@ -8,13 +8,13 @@ namespace AVController
 {
     public struct SourceDest
     {
-        public SourceDest(string source, string dest)
+        public SourceDest(long source, long dest)
         {
             Source = source;
             Destination = dest;
         }
-        public string Source;
-        public string Destination;
+        public long Source;
+        public long Destination;
     }
 
     public struct DistAndDir

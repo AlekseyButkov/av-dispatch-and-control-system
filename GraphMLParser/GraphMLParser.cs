@@ -11,8 +11,12 @@ namespace GraphMLParser
 {
     public class GraphMLParser
     {
-        public static (List<GraphNode> Nodes, List<GraphMLEdge> Edges) ParseFile(string file)
+        private long mNodeIdHelper;
+        private long mEdgeIdHelper;
+        public (List<GraphNode> Nodes, List<GraphMLEdge> Edges) ParseFile(string file)
         {
+            mNodeIdHelper = 0;
+            mEdgeIdHelper = 0;
             if (!File.Exists(file))
                 throw new FileNotFoundException($"Could not find {file}");
 
@@ -52,7 +56,7 @@ namespace GraphMLParser
             return (nodes, edges);
         }
 
-        static GraphMLEdge GetGarphEdge(XElement? element, XNamespace ns)
+        GraphMLEdge GetGarphEdge(XElement? element, XNamespace ns)
         {
             if (element == null) throw new ArgumentNullException();
             var data = element.Elements(ns + "data");
@@ -72,8 +76,8 @@ namespace GraphMLParser
             var reference = data.Where(x => x.Attribute("key")!.Value == "d11");
             var oneway = data.Where(x => x.Attribute("key")!.Value == "d10");
 
-            var id = element.Attribute("id") == null ? 0 : long.Parse(element.Attribute("id")!.Value);
-            var edge = new GraphMLEdge(id, sourceNode, targetNode);
+            var osmid = element.Attribute("id") == null ? 0 : long.Parse(element.Attribute("id")!.Value);
+            var edge = new GraphMLEdge(mEdgeIdHelper, sourceNode, targetNode);
             edge.Service = service.Count() == 0 ? "" : service.First().Value;
             edge.Junction = junction.Count() == 0 ? "" : junction.First().Value;
             edge.Tunnel = tunnel.Count() == 0 ? false : tunnel.First().Value == "yes";
@@ -88,18 +92,21 @@ namespace GraphMLParser
             edge.Ref = reference.Count() == 0 ? "" : reference.First().Value;
             edge.Oneway = oneway.Count() == 0 ? false : bool.Parse(oneway.First().Value);
 
+            mEdgeIdHelper++;
+
             return edge;
         }
 
-        static GraphNode GetGraphNode(XElement? element, XNamespace ns)
+        GraphNode GetGraphNode(XElement? element, XNamespace ns)
         {
             if (element == null) throw new ArgumentNullException();
             var data = element.Elements(ns + "data");
             var x = double.Parse(data.Where(x => x.Attribute("key")!.Value == "d5").First().Value);
             var y = double.Parse(data.Where(x => x.Attribute("key")!.Value == "d4").First().Value);
-            var id = long.Parse(element.Attribute("id")!.Value);
-            var node = new GraphNode(id, x, y);
+            var osmid = long.Parse(element.Attribute("id")!.Value);
+            var node = new GraphNode(mNodeIdHelper, osmid, x, y);
 
+            mNodeIdHelper++;
             return node;
         }
     }
