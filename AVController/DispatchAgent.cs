@@ -1,6 +1,8 @@
-﻿using Graph;
+﻿using AVGraphPrimitives;
+using Graph;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,17 +11,22 @@ namespace AVController
 {
     internal class DispatchAgent
     {
-        RouteFinder routeFinder;
-        public DispatchAgent(List<GraphNode> nodes, List<GraphMLEdge> edges)
+        GraphMap mWorldMap = new();
+        RouteFinder mRouteFinder;
+        public DispatchAgent(RouteFinder routeFinder, GraphMap map)
         {
-            routeFinder = new RouteFinder(nodes, edges);
+            mRouteFinder = routeFinder;
+            mWorldMap = map;
         }
 
         public void TestRoutes()
         {
+            Stopwatch sw = new();
             while (true)
             {
-                routeFinder.TestRoutingBetweenRandomLocations();
+                sw.Restart();
+                mRouteFinder.TestRoutingBetweenRandomLocations();
+                Console.WriteLine($"Found route in {sw.ElapsedMilliseconds}ms");
                 Thread.Sleep(1000);
             }
         }

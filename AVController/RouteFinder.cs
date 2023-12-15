@@ -11,11 +11,12 @@ namespace AVController
 {
     internal class RouteFinder
     {
-        GraphMap mWorldMap = new();
+        GraphMap mWorldMap;
         AStarSearch mAStarSearch;
         
-        public RouteFinder(List<GraphNode> nodes, List<GraphMLEdge> edges)
+        public RouteFinder(List<GraphNode> nodes, List<GraphMLEdge> edges, GraphMap worldMap)
         {
+            mWorldMap = worldMap;
             InitWorldMap(nodes, edges);
             mAStarSearch = new(mWorldMap);
         }
