@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace AVController
 {
-    internal class DispatchAgent
+    public class DispatchAgent
     {
         GraphMap mWorldMap = new();
         RouteFinder mRouteFinder;
@@ -29,6 +29,17 @@ namespace AVController
                 Console.WriteLine($"Found route in {sw.ElapsedMilliseconds}ms");
                 Thread.Sleep(1000);
             }
+        }
+
+        public void TryARoute(WorldSimulation world, long destination)
+        {
+            var car = world.Vehicles[0];
+            var start = car.Location;
+            var path = mRouteFinder.FindRoute(start, destination, TypeOfOptimality.Time);
+            if (car.CanDoRoute(path))
+                car.BeginRoute(path);
+            else
+                Console.WriteLine("what the doooump");
         }
     }
 }

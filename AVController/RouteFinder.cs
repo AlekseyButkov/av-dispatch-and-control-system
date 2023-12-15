@@ -9,7 +9,7 @@ using AVGraphPrimitives;
 
 namespace AVController
 {
-    internal class RouteFinder
+    public class RouteFinder
     {
         GraphMap mWorldMap;
         AStarSearch mAStarSearch;
@@ -45,7 +45,7 @@ namespace AVController
             FindRoute(start.Osmid, end.Osmid, pathOptimalityMetric);
         }
 
-        public void FindRoute(long startId, long endId, TypeOfOptimality pathOptimalityMetric)
+        public List<long> FindRoute(long startId, long endId, TypeOfOptimality pathOptimalityMetric)
         {
             var path = mAStarSearch.FindShortestPath(startId, endId, pathOptimalityMetric);
             var start = mWorldMap.GetPosition(startId);
@@ -57,6 +57,7 @@ namespace AVController
                 distance += stepDistance;
             }
             Console.WriteLine($"Shortest path from {start.Y},{start.X} to {end.Y},{end.X}:\n{distance}m");
+            return path;
         }
 
         public void TestRoutingBetweenRandomLocations()

@@ -15,10 +15,10 @@ namespace AVController
             var nodesAndEdges = parser.ParseFile(args[0]);
             var map = new GraphMap();
             var routeFinder = new RouteFinder(nodesAndEdges.Nodes, nodesAndEdges.Edges, map);
-            var sim = new WorldSimulation(map, 5);
             var dispatcher = new DispatchAgent(routeFinder, map);
-            dispatcher.TestRoutes();
-            //sim.Start();
+            var sim = new WorldSimulation(map, dispatcher, 5);
+            //dispatcher.TestRoutes();
+            sim.BeginSimulation();
         }
     }
 }
