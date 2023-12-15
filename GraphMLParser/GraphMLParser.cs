@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -11,8 +12,11 @@ namespace GraphMLParser
 {
     public class GraphMLParser
     {
+        private const double DEFAULT_SPEED = 50; // kph
+        private const double MPH_TO_KPH_FACTOR = 1.609344;
         private long mNodeIdHelper;
         private long mEdgeIdHelper;
+        private Regex speedRx = new(@"\d+");
         public (List<GraphNode> Nodes, List<GraphMLEdge> Edges) ParseFile(string file)
         {
             mNodeIdHelper = 0;
@@ -86,7 +90,7 @@ namespace GraphMLParser
             edge.Lanes = lanes.Count() == 0 ? "" : lanes.First().Value;
             edge.Geometry = geometry.Count() == 0 ? "" : geometry.First().Value;
             edge.Length = length.Count() == 0 ? double.PositiveInfinity : double.Parse(length.First().Value);
-            edge.MaxSpeed = maxspeed.Count() == 0 ? "" : maxspeed.First().Value;
+            edge.MaxSpeedKPH = maxspeed.Count() == 0 ? DEFAULT_SPEED : ParseSpeedToKph(maxspeed.First().Value);
             edge.Highway = highway.Count() == 0 ? "" : highway.First().Value;
             edge.Name = name.Count() == 0 ? "" : name.First().Value;
             edge.Ref = reference.Count() == 0 ? "" : reference.First().Value;
@@ -95,6 +99,19 @@ namespace GraphMLParser
             mEdgeIdHelper++;
 
             return edge;
+        }
+
+        /// <summary>
+        /// Parses speed string and converts from MPH to KPH
+        /// </summary>
+        /// <param name="speed"></param>
+        double ParseSpeedToKph(string speed)
+        {
+            var matches = speedRx.Matches(speed);
+            if (matches.Count == 0)
+                return DEFAULT_SPEED;
+            else
+                return double.Parse(matches[0].Value) * MPH_TO_KPH_FACTOR;
         }
 
         GraphNode GetGraphNode(XElement? element, XNamespace ns)

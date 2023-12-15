@@ -17,8 +17,8 @@ namespace AVController
             var routeFinder = new RouteFinder(nodesAndEdges.Nodes, nodesAndEdges.Edges, map);
             var sim = new WorldSimulation(map, 5);
             var dispatcher = new DispatchAgent(routeFinder, map);
-            sim.Start();
-            //dispatcher.TestRoutes();
+            dispatcher.TestRoutes();
+            //sim.Start();
         }
     }
 }

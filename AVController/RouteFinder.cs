@@ -40,20 +40,20 @@ namespace AVController
             Console.WriteLine($"initialized route finder worldmap in {sw.ElapsedMilliseconds}");
         }
 
-        public void FindRoute(GraphNode start, GraphNode end)
+        public void FindRoute(GraphNode start, GraphNode end, TypeOfOptimality pathOptimalityMetric)
         {
-            FindRoute(start.Osmid, end.Osmid);
+            FindRoute(start.Osmid, end.Osmid, pathOptimalityMetric);
         }
 
-        public void FindRoute(long startId, long endId)
+        public void FindRoute(long startId, long endId, TypeOfOptimality pathOptimalityMetric)
         {
-            var path = mAStarSearch.FindShortestPath(startId, endId);
+            var path = mAStarSearch.FindShortestPath(startId, endId, pathOptimalityMetric);
             var start = mWorldMap.GetPosition(startId);
             var end = mWorldMap.GetPosition(endId);
             var distance = 0.0;
             for (var i = 0; i < path.Count - 1; i++)
             {
-                var stepDistance = mWorldMap.GetDistance(path[i], path[i + 1]);
+                var stepDistance = mWorldMap.GetDistanceMetric(path[i], path[i + 1]);
                 distance += stepDistance;
             }
             Console.WriteLine($"Shortest path from {start.Y},{start.X} to {end.Y},{end.X}:\n{distance}m");
@@ -64,7 +64,7 @@ namespace AVController
             var start = mWorldMap.RandomlyGenerateDestination();
             var end = mWorldMap.RandomlyGenerateDestination();
             Console.WriteLine($"Trying to route...");
-            FindRoute(start, end);
+            FindRoute(start, end, TypeOfOptimality.Time);
         }
     }
 }
