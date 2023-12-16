@@ -17,8 +17,13 @@ namespace GraphMLParser
         private long mNodeIdHelper;
         private long mEdgeIdHelper;
         private Regex speedRx = new(@"\d+");
+        Dictionary<string, string> mEdgeAttrMap = new();
+        Dictionary<string, string> mNodeAttrMap = new();
+
         public (List<GraphNode> Nodes, List<GraphMLEdge> Edges) ParseFile(string file)
         {
+            mEdgeAttrMap.Clear();
+            mNodeAttrMap.Clear();
             mNodeIdHelper = 0;
             mEdgeIdHelper = 0;
             if (!File.Exists(file))
@@ -37,6 +42,15 @@ namespace GraphMLParser
             if (xmlnsVal == null)
                 throw new Exception("no namespace");
             XNamespace ns = xmlnsVal.Value;
+
+            var keys = doc.Root.Elements(ns + "key").ToList();
+            foreach (var key in keys)
+            {
+                if (key.Attribute("for")!.Value == "edge")
+                    mEdgeAttrMap[key.Attribute("attr.name")!.Value] = key.Attribute("id")!.Value;
+                if (key.Attribute("for")!.Value == "node")
+                    mNodeAttrMap[key.Attribute("attr.name")!.Value] = key.Attribute("id")!.Value;
+            }
 
             var docEdges = (from i in doc.Root.Element(ns + "graph")!.Elements(ns + "edge")
                            select i).ToList();
@@ -60,45 +74,85 @@ namespace GraphMLParser
             return (nodes, edges);
         }
 
+        
+
         GraphMLEdge GetGarphEdge(XElement? element, XNamespace ns)
         {
             if (element == null) throw new ArgumentNullException();
             var data = element.Elements(ns + "data");
             var sourceNode = long.Parse(element.Attribute("source")!.Value);
             var targetNode = long.Parse(element.Attribute("target")!.Value);
-            var service = data.Where(x => x.Attribute("key")!.Value == "d22");
-            var junction = data.Where(x => x.Attribute("key")!.Value == "d21");
-            var tunnel = data.Where(x => x.Attribute("key")!.Value == "d20");
-            var access = data.Where(x => x.Attribute("key")!.Value == "d19");
-            var bridge = data.Where(x => x.Attribute("key")!.Value == "d18");
-            var lanes = data.Where(x => x.Attribute("key")!.Value == "d17");
-            var geometry = data.Where(x => x.Attribute("key")!.Value == "d16");
-            var length = data.Where(x => x.Attribute("key")!.Value == "d15");
-            var maxspeed = data.Where(x => x.Attribute("key")!.Value == "d14");
-            var highway = data.Where(x => x.Attribute("key")!.Value == "d13");
-            var name = data.Where(x => x.Attribute("key")!.Value == "d12");
-            var reference = data.Where(x => x.Attribute("key")!.Value == "d11");
-            var oneway = data.Where(x => x.Attribute("key")!.Value == "d10");
 
             var osmid = element.Attribute("id") == null ? 0 : long.Parse(element.Attribute("id")!.Value);
             var edge = new GraphMLEdge(mEdgeIdHelper, sourceNode, targetNode);
-            edge.Service = service.Count() == 0 ? "" : service.First().Value;
-            edge.Junction = junction.Count() == 0 ? "" : junction.First().Value;
-            edge.Tunnel = tunnel.Count() == 0 ? false : tunnel.First().Value == "yes";
-            edge.Access = access.Count() == 0 ? "" : access.First().Value;
-            edge.Bridge = bridge.Count() == 0 ? false : bridge.First().Value == "yes";
-            edge.Lanes = lanes.Count() == 0 ? "" : lanes.First().Value;
-            edge.Geometry = geometry.Count() == 0 ? "" : geometry.First().Value;
-            edge.Length = length.Count() == 0 ? double.PositiveInfinity : double.Parse(length.First().Value);
+
+            // speed, length, and oneway must be present, otherwise the dataset contains improperly formed edges
+            var maxspeed = GetEdgeElement("maxspeed");
             edge.MaxSpeedKPH = maxspeed.Count() == 0 ? DEFAULT_SPEED : ParseSpeedToKph(maxspeed.First().Value);
-            edge.Highway = highway.Count() == 0 ? "" : highway.First().Value;
-            edge.Name = name.Count() == 0 ? "" : name.First().Value;
-            edge.Ref = reference.Count() == 0 ? "" : reference.First().Value;
+            var length = GetEdgeElement("length");
+            edge.Length = length.Count() == 0 ? double.PositiveInfinity : double.Parse(length.First().Value);
+            var oneway = GetEdgeElement("oneway");
             edge.Oneway = oneway.Count() == 0 ? false : bool.Parse(oneway.First().Value);
 
+            if (mEdgeAttrMap.ContainsKey("service"))
+            {
+                var service = GetEdgeElement("service");
+                edge.Service = service.Count() == 0 ? "" : service.First().Value;
+            }
+            if (mEdgeAttrMap.ContainsKey("junction"))
+            {
+                var junction = GetEdgeElement("junction");
+                edge.Junction = junction.Count() == 0 ? "" : junction.First().Value;
+            }
+            if (mEdgeAttrMap.ContainsKey("tunnel"))
+            {
+                var tunnel = GetEdgeElement("tunnel");
+                edge.Tunnel = tunnel.Count() == 0 ? false : tunnel.First().Value == "yes";
+            }
+            if (mEdgeAttrMap.ContainsKey("access"))
+            {
+                var access = GetEdgeElement("access");
+                edge.Access = access.Count() == 0 ? "" : access.First().Value;
+            }
+            if (mEdgeAttrMap.ContainsKey("bridge"))
+            {
+                var bridge = GetEdgeElement("bridge");
+                edge.Bridge = bridge.Count() == 0 ? false : bridge.First().Value == "yes";
+            }
+            if (mEdgeAttrMap.ContainsKey("lanes"))
+            {
+                var lanes = GetEdgeElement("lanes");
+                edge.Lanes = lanes.Count() == 0 ? "" : lanes.First().Value;
+            }
+            if (mEdgeAttrMap.ContainsKey("geometry"))
+            {
+                var geometry = GetEdgeElement("geometry");
+                edge.Geometry = geometry.Count() == 0 ? "" : geometry.First().Value;
+            }
+            if (mEdgeAttrMap.ContainsKey("highway"))
+            {
+                var highway = GetEdgeElement("highway");
+                edge.Highway = highway.Count() == 0 ? "" : highway.First().Value;
+            }
+            if (mEdgeAttrMap.ContainsKey("name"))
+            {
+                var name = GetEdgeElement("name");
+                edge.Name = name.Count() == 0 ? "" : name.First().Value;
+            }
+            if (mEdgeAttrMap.ContainsKey("ref"))
+            {
+                var reference = GetEdgeElement("ref");
+                edge.Ref = reference.Count() == 0 ? "" : reference.First().Value;
+            }
             mEdgeIdHelper++;
 
             return edge;
+
+            IEnumerable<XElement> GetEdgeElement(string name)
+            {
+                var blah = data.Where(x => x.Attribute("key")!.Value == mEdgeAttrMap[name]);
+                return blah;
+            }
         }
 
         /// <summary>
@@ -118,8 +172,8 @@ namespace GraphMLParser
         {
             if (element == null) throw new ArgumentNullException();
             var data = element.Elements(ns + "data");
-            var x = double.Parse(data.Where(x => x.Attribute("key")!.Value == "d5").First().Value);
-            var y = double.Parse(data.Where(x => x.Attribute("key")!.Value == "d4").First().Value);
+            var x = double.Parse(data.Where(x => x.Attribute("key")!.Value == mNodeAttrMap["x"]).First().Value);
+            var y = double.Parse(data.Where(x => x.Attribute("key")!.Value == mNodeAttrMap["y"]).First().Value);
             var osmid = long.Parse(element.Attribute("id")!.Value);
             var node = new GraphNode(mNodeIdHelper, osmid, x, y);
 
