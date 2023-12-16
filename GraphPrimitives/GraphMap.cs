@@ -53,6 +53,17 @@ namespace AVGraphPrimitives
                 mLocations.Remove(g.Osmid);
         }
 
+        /// <summary>
+        /// Rebuilds the node list by only using nodes which edges in the underlying graph connect.
+        /// </summary>
+        public void RebuildNodeListFromEdges()
+        {
+            var nodes = mGraph.GetNodesWithConnections();
+            mLocations.Clear();
+            foreach (var n in nodes)
+                mLocations[n.Osmid] = n;
+        }
+
         public GraphEdge? GetEdge(long node1, long node2)
         {
             if (!mEdges.ContainsKey((node1, node2)))

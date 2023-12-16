@@ -95,6 +95,12 @@ namespace AVGraphPrimitives
             return nodes;
         }
 
+        public List<GraphNode> GetNodesWithConnections()
+        {
+            var nodes = mConnectionMap.Where(x => x.Value.Count != 0).Select(x => x.Key).ToList();
+            return nodes;
+        }
+
         /// <summary>
         /// Clear all nodes and edges
         /// </summary>c

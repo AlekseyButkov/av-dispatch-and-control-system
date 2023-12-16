@@ -43,6 +43,7 @@ namespace AVController
                 else
                     mWorldMap.AddBidirectionalLink(edge);
             }
+            mWorldMap.RebuildNodeListFromEdges();
             Console.WriteLine($"initialized route finder worldmap in {sw.ElapsedMilliseconds}");
         }
 
@@ -67,7 +68,7 @@ namespace AVController
             //Console.WriteLine($"Shortest path from {start.Y},{start.X} to {end.Y},{end.X}:\n{distance}m");
             if (path.Count == 0)
             {
-                throw new Exception($"Unable to find route. from {start.Y},{start.X} to {end.Y},{end.X}");
+                throw new Exception($"Unable to find route. from node {startId} to node {endId}. Positions: {start.Y},{start.X} to {end.Y},{end.X}");
             }
             return path;
         }
