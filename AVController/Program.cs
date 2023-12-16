@@ -11,12 +11,7 @@ namespace AVController
                 Console.WriteLine("No GraphML input file supplied");
                 return;
             }
-            GraphMLParser.GraphMLParser parser = new();
-            var nodesAndEdges = parser.ParseFile(args[0]);
-            var map = new GraphMap();
-            var routeFinder = new RouteFinder(nodesAndEdges.Nodes, nodesAndEdges.Edges, map);
-            var dispatcher = new DispatchAgent(routeFinder, map);
-            var sim = new WorldSimulation(map, dispatcher, 5);
+            var sim = new WorldSimulation(5, args[0]);
             //dispatcher.TestRoutes();
             sim.BeginSimulation();
         }

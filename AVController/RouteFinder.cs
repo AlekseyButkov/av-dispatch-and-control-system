@@ -14,6 +14,12 @@ namespace AVController
         GraphMap mWorldMap;
         AStarSearch mAStarSearch;
         
+        public RouteFinder()
+        {
+            mWorldMap = new();
+            mAStarSearch = new(mWorldMap);
+        }
+
         public RouteFinder(List<GraphNode> nodes, List<GraphMLEdge> edges, GraphMap worldMap)
         {
             mWorldMap = worldMap;
@@ -40,13 +46,15 @@ namespace AVController
             Console.WriteLine($"initialized route finder worldmap in {sw.ElapsedMilliseconds}");
         }
 
-        public void FindRoute(GraphNode start, GraphNode end, TypeOfOptimality pathOptimalityMetric)
+        public void TryFindRoute(GraphNode start, GraphNode end, TypeOfOptimality pathOptimalityMetric)
         {
-            FindRoute(start.Osmid, end.Osmid, pathOptimalityMetric);
+            TryFindRoute(start.Osmid, end.Osmid, pathOptimalityMetric);
         }
 
-        public List<long> FindRoute(long startId, long endId, TypeOfOptimality pathOptimalityMetric)
+        public List<long> TryFindRoute(long startId, long endId, TypeOfOptimality pathOptimalityMetric)
         {
+            if (mWorldMap.IsEmpty)
+                throw new Exception("World map is empty");
             var path = mAStarSearch.FindShortestPath(startId, endId, pathOptimalityMetric);
             var start = mWorldMap.GetPosition(startId);
             var end = mWorldMap.GetPosition(endId);
@@ -56,7 +64,11 @@ namespace AVController
                 var stepDistance = mWorldMap.GetDistanceMetric(path[i], path[i + 1]);
                 distance += stepDistance;
             }
-            Console.WriteLine($"Shortest path from {start.Y},{start.X} to {end.Y},{end.X}:\n{distance}m");
+            //Console.WriteLine($"Shortest path from {start.Y},{start.X} to {end.Y},{end.X}:\n{distance}m");
+            if (path.Count == 0)
+            {
+                throw new Exception($"Unable to find route. from {start.Y},{start.X} to {end.Y},{end.X}");
+            }
             return path;
         }
 
@@ -65,7 +77,7 @@ namespace AVController
             var start = mWorldMap.RandomlyGenerateDestination();
             var end = mWorldMap.RandomlyGenerateDestination();
             Console.WriteLine($"Trying to route...");
-            FindRoute(start, end, TypeOfOptimality.Time);
+            TryFindRoute(start, end, TypeOfOptimality.Time);
         }
     }
 }
