@@ -12,9 +12,11 @@ namespace AVController
     {
         private const int DEFAULT_POPULATION = 430000;
         private List<Vehicle> mVehicles = new();
+        private List<int> mReservedPeople = new();
+        private Random mRand = new();
         private RouteFinder mRouteFinder = new();
         private GraphMap mMap = new();
-        private DispatchAgent mAgent;
+        private IndependentDriverAgent mAgent;
         private TripRequestCoordinator mRequestCoordinator;
         private double mTimeStepInS = 5;
         private double mChargeRate = 0.034;
@@ -27,7 +29,7 @@ namespace AVController
             mPopulation = population;
             mTimeStepInS = timeStep;
             InitializeWorldMap(gmlFilePath);
-            mRequestCoordinator = new(this, mMap, mTimeStepInS, 360, mPopulation);
+            mRequestCoordinator = new(this, mMap, mTimeStepInS, 360);
             mAgent = new(this, mRequestCoordinator, mRouteFinder, mMap);
         }
 
@@ -47,6 +49,18 @@ namespace AVController
             var fileName = Path.GetFileNameWithoutExtension(gmlPath);
             mMap.SourceFileName = fileName;
             mRouteFinder = new(nodesAndEdges.Nodes, nodesAndEdges.Edges, mMap);
+        }
+
+        public int? ReserveAvailablePersonId()
+        {
+            var person = mRand.Next(0, mPopulation);
+            while (mReservedPeople.Contains(person))
+            {
+                if (mReservedPeople.Count == mPopulation)
+                    return null;
+                person = mRand.Next(0, mPopulation);
+            }
+            return person;
         }
 
         public Vehicle RequestNewVehicle()

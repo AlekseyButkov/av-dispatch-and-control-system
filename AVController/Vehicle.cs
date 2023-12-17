@@ -17,6 +17,7 @@ namespace AVController
         AwaitingRider
     }
 
+
     /// <summary>
     /// Simulated vehicle class
     /// </summary>
@@ -27,6 +28,7 @@ namespace AVController
 
         public static double sTotalMetersDriven = 0;
         public static double sTotalChargeUsed = 0;
+        public static int sRidersTransported = 0;
 
         private VehicleStatus mStatus;
         private double mCharge;
@@ -39,6 +41,11 @@ namespace AVController
         private GraphMap mMap;
         private WorldSimulation mSim;
         private List<GraphEdge> mCurrentPath = new();
+
+        public static double TotalDistanceKm { get { return sTotalMetersDriven / 1000; } }
+        public static double TotalChargeUsed { get { return sTotalChargeUsed; } }
+        public static int RidersTransported { get { return sRidersTransported; } }
+
         public int Id { get; }
         public double RemainingCharge
         { get { return mCharge; } }
@@ -90,7 +97,10 @@ namespace AVController
         {
             // If we're already at the location
             if (pathNodeIds.Count == 1)
+            {
                 TripComplete();
+                return;
+            }
             var path = mMap.ConstructTravelPath(pathNodeIds);
             mStatus = VehicleStatus.Transporting;
             mTripLog += $"\nTransporting rider ";
@@ -105,7 +115,10 @@ namespace AVController
         {
             // If we're already at the location
             if (pathNodeIds.Count == 1)
+            {
                 TripComplete();
+                return;
+            }
             var path = mMap.ConstructTravelPath(pathNodeIds);
             mStatus = VehicleStatus.PickingUpRider;
             mTripLog += $"\nPicking up rider ";
@@ -186,7 +199,10 @@ namespace AVController
             if (mStatus == VehicleStatus.PickingUpRider)
                 mStatus = VehicleStatus.AwaitingRider;
             if (mStatus == VehicleStatus.Transporting)
+            {
                 mStatus = VehicleStatus.Idle;
+                sRidersTransported++;
+            }
             mDistanceRemainingOnCurrentHop = 0;
             mTripLog += "\nTrip complete!";
             Console.WriteLine(mTripLog);
@@ -230,12 +246,14 @@ namespace AVController
                 // Move on to the next hop
                 mIndexOnPath++;
                 mDistanceRemainingOnCurrentHop = mCurrentPath[mIndexOnPath].Length;
+                sTotalMetersDriven += mDistanceRemainingOnCurrentHop;
                 var fractionOfRemainingTravel = 1 - (mDistanceRemainingOnCurrentHop / distancePerStep);
                 DriveForSeconds(seconds * fractionOfRemainingTravel);
             }
             else
             {
                 mTripLog += ".";
+                sTotalMetersDriven += distancePerStep;
                 mDistanceRemainingOnCurrentHop -= distancePerStep;
             }
         }

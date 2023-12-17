@@ -12,10 +12,10 @@ namespace AVController
         private Random mRandom = new();
         private List<Trip> mRequests = new();
         private GraphMap mMap;
+        private WorldSimulation mSim;
         private double mTimeStepInS;
         private double mTicksPerDay;
         private double mRequestsPerTStep;
-        private int mPopulation;
 
         /// <summary>
         /// Implements a FIFO queue for trip requests and generates new requests with time
@@ -24,13 +24,13 @@ namespace AVController
         /// <param name="map">World map</param>
         /// <param name="tickIncrememntInSeconds">How many seconds is in a single time tick</param>
         /// <param name="meanRequestsPerHour">Average number of requests to generate per hour</param>
-        public TripRequestCoordinator(WorldSimulation sim, GraphMap map, double tickIncrememntInSeconds, int meanRequestsPerHour, int population)
+        public TripRequestCoordinator(WorldSimulation sim, GraphMap map, double tickIncrememntInSeconds, int meanRequestsPerHour)
         {
             mMap = map;
+            mSim = sim;
             mTimeStepInS = tickIncrememntInSeconds;
             mTicksPerDay = (24 * 3600) / tickIncrememntInSeconds;
             mRequestsPerTStep = ((double)meanRequestsPerHour / 3600) * tickIncrememntInSeconds;
-            mPopulation = population;
             sim.TimeTick += OnTimeIncrement;
         }
 
@@ -52,11 +52,14 @@ namespace AVController
         /// <summary>
         /// Create a single new trip request
         /// </summary>
-        public Trip CreateNewRequest()
+        public Trip? CreateNewRequest()
         {
             var start = mMap.GetRandomValidLocation();
             var destination = mMap.GetRandomValidLocation();
-            var trip = new Trip(mRandom.Next(mPopulation), start, destination);
+            var personId = mSim.ReserveAvailablePersonId();
+            if (personId == null)
+                return null;
+            var trip = new Trip((int)personId, start, destination);
             return trip;
         }
 
@@ -74,8 +77,13 @@ namespace AVController
                 if (percentileRoll < remainingRequestChance * 100)
                 {
                     var request = CreateNewRequest();
-                    mRequests.Add(request);
-                    Console.WriteLine($"Generated new trip request: {request}");
+                    if (request != null)
+                    {
+                        mRequests.Add(request);
+                        Console.WriteLine($"Generated new trip request: {request}");
+                    }
+                    else
+                        Console.WriteLine($"Cannot generate trip request");
                 }
                 remainingRequestChance--;
             }

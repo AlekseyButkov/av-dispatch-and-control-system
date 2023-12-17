@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace AVController
 {
+    /// <summary>
+    /// Routing and control agent for vehicle fleet
+    /// </summary>
     public class DispatchAgent
     {
         private int mFailedRoutes = 0;
@@ -106,8 +109,8 @@ namespace AVController
         /// </summary>
         private void HandleInProgressTrips()
         {
-            var trips = mTripsInProgress.Where(x => x.Car != null && x.Car.Status == VehicleStatus.AwaitingRider);
-            foreach (var trip in trips)
+            var tripsAwaitingRider = mTripsInProgress.Where(x => x.Car != null && x.Car.Status == VehicleStatus.AwaitingRider);
+            foreach (var trip in tripsAwaitingRider)
             {
                 if (trip.Car == null)
                     throw new Exception("Car cannot be null in a scheduled trip");
@@ -122,9 +125,12 @@ namespace AVController
                 }
                 trip.Car.BeginTrip(path);
             }
+            var completedTrips = mTripsInProgress.Where(x => x.Car != null && x.Car.Status == VehicleStatus.Idle).ToList();
+            foreach (var trip in completedTrips)
+                mTripsInProgress.Remove(trip);
         }
 
-        public void OnTimeIncrement(object? sender,  EventArgs e)
+        private void OnTimeIncrement(object? sender,  EventArgs e)
         {
             HandleNewRequests();
             HandleInProgressTrips();
