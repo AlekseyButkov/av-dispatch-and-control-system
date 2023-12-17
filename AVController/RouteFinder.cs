@@ -141,17 +141,6 @@ namespace AVController
             return failed < MAX_ROUTING_ATTEMPTS / 2;
         }
 
-        /*public long GetRandomValidLocation()
-        {
-            var loc = mWorldMap.GetRandomLocation();
-            if (mValidNodes.Contains(loc))
-                return loc;
-            while(!IsPartOfConnectedGraph(loc))
-                loc = mWorldMap.GetRandomLocation();
-            mValidNodes.Add(loc);
-            return loc;
-        }*/
-
         public void TestRoutingBetweenRandomLocations()
         {
             var start = mWorldMap.GetRandomLocation();

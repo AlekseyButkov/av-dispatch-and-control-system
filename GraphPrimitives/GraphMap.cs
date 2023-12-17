@@ -205,9 +205,9 @@ namespace AVGraphPrimitives
         /// <summary>
         /// Remove a location from the available locations dictionary.
         /// </summary>
-        public void RemoveLocation(long nodeId)
+        public void RemoveInvalidLocation(long nodeId)
         {
-            mLocations.Remove(nodeId);
+            mValidLocations.Remove(nodeId);
         }
     }
 }

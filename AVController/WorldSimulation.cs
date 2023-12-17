@@ -24,9 +24,10 @@ namespace AVController
         public event EventHandler TimeTick = delegate { };
         public WorldSimulation(double timeStep, string gmlFilePath, int population = DEFAULT_POPULATION)
         {
+            mPopulation = population;
             mTimeStepInS = timeStep;
             InitializeWorldMap(gmlFilePath);
-            mRequestCoordinator = new(this, mMap, mTimeStepInS, 720, mPopulation);
+            mRequestCoordinator = new(this, mMap, mTimeStepInS, 360, mPopulation);
             mAgent = new(this, mRequestCoordinator, mRouteFinder, mMap);
         }
 

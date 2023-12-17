@@ -88,6 +88,9 @@ namespace AVController
         /// <param name="pathNodeIds">List of node ids to visit in sequence, representing a valid path</param>
         public void BeginTrip(List<long> pathNodeIds)
         {
+            // If we're already at the location
+            if (pathNodeIds.Count == 1)
+                TripComplete();
             var path = mMap.ConstructTravelPath(pathNodeIds);
             mStatus = VehicleStatus.Transporting;
             mTripLog += $"\nTransporting rider ";
@@ -100,6 +103,9 @@ namespace AVController
         /// <param name="pathNodeIds">List of node ids to visit in sequence, representing a valid path</param>
         public void PickUpRider(List<long> pathNodeIds)
         {
+            // If we're already at the location
+            if (pathNodeIds.Count == 1)
+                TripComplete();
             var path = mMap.ConstructTravelPath(pathNodeIds);
             mStatus = VehicleStatus.PickingUpRider;
             mTripLog += $"\nPicking up rider ";
@@ -140,6 +146,18 @@ namespace AVController
             // TODO: Factor in range for getting to a charging/fuel station
             var length = GetTotalPathLength(path);
             return length < GetRemainingRange();
+        }
+
+        public void ResetVehicle()
+        {
+            mCharge = 100;
+            mCurrentDestination = -1;
+            mCurrentPath.Clear();
+            mDistanceRemainingOnCurrentHop = 0;
+            mIndexOnPath = 0;
+            mStatus = VehicleStatus.Idle;
+            mLastLocation = mMap.GetRandomValidLocation();
+            mTripLog = "";
         }
 
         /// <summary>

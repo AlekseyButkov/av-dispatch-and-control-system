@@ -57,9 +57,11 @@ namespace AVController
         /// </summary>
         private void HandleNewRequests()
         {
-            var request = mCoordinator.PopNextRequest();
-            while (request != null)
+            while (mCoordinator.NumPendingRequests != 0)
             {
+                var request = mCoordinator.PopNextRequest();
+                if (request == null)
+                    throw new Exception("Popped request was null");
                 // get an available vehicle or create a new one if there are none
                 Vehicle car;
                 var idleCars = mSim.Vehicles.Where(x => x.Status == VehicleStatus.Idle).ToList();
@@ -72,18 +74,22 @@ namespace AVController
                 var pathToRider = mRouteFinder.FindRoute(car.Location, request.Start, TypeOfOptimality.Time);
                 if (pathToRider.Count == 0)
                 {
-                    // Car location does not need to be tested, cars start at already tested locations
-                    mWorldMap.RemoveLocation(request.Start);
-                    Console.WriteLine("Warning: Failed to find route when handling new trip request because no route was found");
+                    // if car is stuck ignore request and reset car
+                    if (!mRouteFinder.IsPartOfConnectedGraph(car.Location))
+                        car.ResetVehicle();
+                    if (!mRouteFinder.IsPartOfConnectedGraph(request.Start))
+                        mWorldMap.RemoveInvalidLocation(request.Start);
+                    Console.WriteLine("Warning: Failed to find pick up route when handling new trip request");
                     return;
                 }
                 var requestedPath = mRouteFinder.FindRoute(request.Start, request.Destination, TypeOfOptimality.Time);
                 if (requestedPath.Count == 0)
                 {
                     if (!mRouteFinder.IsPartOfConnectedGraph(request.Start))
-                        mWorldMap.RemoveLocation(request.Start);
+                        mWorldMap.RemoveInvalidLocation(request.Start);
                     if (!mRouteFinder.IsPartOfConnectedGraph(request.Destination))
-                        mWorldMap.RemoveLocation(request.Destination);
+                        mWorldMap.RemoveInvalidLocation(request.Destination);
+                    Console.WriteLine("Warning: Failed to find delivery route when handling new trip request");
                     return;
                 }
 
