@@ -42,11 +42,14 @@ namespace AVController
         {
             var car = world.Vehicles[0];
             var start = car.Location;
-            var path = mRouteFinder.TryFindRoute(start, destination, TypeOfOptimality.Time);
-            if (car.CanDoRoute(path))
-                car.BeginTrip(path);
-            else
-                Console.WriteLine("Could not do route");
+            var path = mRouteFinder.FindRoute(start, destination, TypeOfOptimality.Time);
+            if (path.Count != 0)
+            {
+                if (car.CanDoRoute(path))
+                    car.BeginTrip(path);
+                else
+                    Console.WriteLine("Could not do route");
+            }
         }
 
         /// <summary>
@@ -65,19 +68,26 @@ namespace AVController
                 else
                     car = idleCars[0];
 
-                List<long> path = new();
-                // route the vehicle to the trip requester.
-                try
+                // Test whether full route is part of main connected graph, ignore the request if it is not
+                var pathToRider = mRouteFinder.FindRoute(car.Location, request.Start, TypeOfOptimality.Time);
+                if (pathToRider.Count == 0)
                 {
-                    path = mRouteFinder.TryFindRoute(car.Location, request.Start, TypeOfOptimality.Time);
-                }
-                catch(Exception e)
-                {
-                    mFailedRoutes++;
-                    Console.WriteLine("Warning: Failed to find route when handling new trip request: " + e.Message);
+                    // Car location does not need to be tested, cars start at already tested locations
+                    mWorldMap.RemoveLocation(request.Start);
+                    Console.WriteLine("Warning: Failed to find route when handling new trip request because no route was found");
                     return;
                 }
-                car.PickUpRider(path);
+                var requestedPath = mRouteFinder.FindRoute(request.Start, request.Destination, TypeOfOptimality.Time);
+                if (requestedPath.Count == 0)
+                {
+                    if (!mRouteFinder.IsPartOfConnectedGraph(request.Start))
+                        mWorldMap.RemoveLocation(request.Start);
+                    if (!mRouteFinder.IsPartOfConnectedGraph(request.Destination))
+                        mWorldMap.RemoveLocation(request.Destination);
+                    return;
+                }
+
+                car.PickUpRider(pathToRider);
                 request.Car = car;
 
                 mTripsInProgress.Add(request);
@@ -95,17 +105,13 @@ namespace AVController
             {
                 if (trip.Car == null)
                     throw new Exception("Car cannot be null in a scheduled trip");
-                List<long> path = new();
-                try
-                {
-                    path = mRouteFinder.TryFindRoute(trip.Start, trip.Destination, TypeOfOptimality.Time);
-                }
-                catch (Exception e)
+                var path = mRouteFinder.FindRoute(trip.Start, trip.Destination, TypeOfOptimality.Time);
+                if (path.Count == 0)
                 {
                     trip.Car.CancelCurrentRoute();
                     mTripsInProgress.Remove(trip);
                     mFailedRoutes++;
-                    Console.WriteLine("Warning: Failed to find route when picking up rider: " + e.Message);
+                    Console.WriteLine("Warning: Failed to find route when picking up rider");
                     return;
                 }
                 trip.Car.BeginTrip(path);

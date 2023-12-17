@@ -24,14 +24,14 @@ namespace AVController
         /// <param name="map">World map</param>
         /// <param name="tickIncrememntInSeconds">How many seconds is in a single time tick</param>
         /// <param name="meanRequestsPerHour">Average number of requests to generate per hour</param>
-        public TripRequestCoordinator(WorldSimulation mSim, GraphMap map, double tickIncrememntInSeconds, int meanRequestsPerHour, int population)
+        public TripRequestCoordinator(WorldSimulation sim, GraphMap map, double tickIncrememntInSeconds, int meanRequestsPerHour, int population)
         {
             mMap = map;
             mTimeStepInS = tickIncrememntInSeconds;
             mTicksPerDay = (24 * 3600) / tickIncrememntInSeconds;
             mRequestsPerTStep = ((double)meanRequestsPerHour / 3600) * tickIncrememntInSeconds;
             mPopulation = population;
-            mSim.TimeTick += OnTimeIncrement;
+            sim.TimeTick += OnTimeIncrement;
         }
 
         public int NumPendingRequests {  get { return mRequests.Count; } }
@@ -54,8 +54,8 @@ namespace AVController
         /// </summary>
         public Trip CreateNewRequest()
         {
-            var start = mMap.RandomlyGenerateDestination();
-            var destination = mMap.RandomlyGenerateDestination();
+            var start = mMap.GetRandomValidLocation();
+            var destination = mMap.GetRandomValidLocation();
             var trip = new Trip(mRandom.Next(mPopulation), start, destination);
             return trip;
         }

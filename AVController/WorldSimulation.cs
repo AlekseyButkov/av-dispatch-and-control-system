@@ -43,13 +43,15 @@ namespace AVController
         {
             GraphMLParser.GraphMLParser parser = new();
             var nodesAndEdges = parser.ParseFile(gmlPath);
+            var fileName = Path.GetFileNameWithoutExtension(gmlPath);
+            mMap.SourceFileName = fileName;
             mRouteFinder = new(nodesAndEdges.Nodes, nodesAndEdges.Edges, mMap);
         }
 
         public Vehicle RequestNewVehicle()
         {
-            var start = mMap.RandomlyGenerateDestination();
-            var car = new Vehicle(mVehicleIdHelper, this, mMap, start, VehicleStatus.Idle);
+            var loc = mMap.GetRandomValidLocation();
+            var car = new Vehicle(mVehicleIdHelper, this, mMap, loc, VehicleStatus.Idle);
             mVehicleIdHelper++;
             mVehicles.Add(car);
             return car;

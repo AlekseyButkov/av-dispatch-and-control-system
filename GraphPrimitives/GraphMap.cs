@@ -12,10 +12,22 @@ namespace AVGraphPrimitives
         private const double KPH_TO_MPS_FACTOR = 0.2777778;
         private Dictionary<long, GraphNode> mLocations = new();
         private Dictionary<(long, long), GraphEdge> mEdges = new();
+        private List<long> mValidLocations = new();
         private DirectedGraph mGraph = new();
+        private string mSourceFileName = string.Empty;
         public GraphMap() { }
 
         public bool IsEmpty { get { return mEdges.Count == 0; } }
+        public string SourceFileName
+        {
+            get { return mSourceFileName; }
+            set { mSourceFileName = value; }
+        }
+        public List<long> ValidLocations
+        {
+            get { return mValidLocations; }
+            set { mValidLocations = value; }
+        }
 
         public void AddLocation(GraphNode location)
         {
@@ -48,7 +60,7 @@ namespace AVGraphPrimitives
         /// </summary>
         public void Clean()
         {
-            var disconnectedNodes = mGraph.GetUnconnectedNodes();
+            var disconnectedNodes = mGraph.GetIsolatedNodes();
             foreach (var g in disconnectedNodes)
                 mLocations.Remove(g.Osmid);
         }
@@ -108,6 +120,11 @@ namespace AVGraphPrimitives
             return mLocations.Keys.ToList();
         }
 
+        public List<GraphNode> GetLocationNodes()
+        {
+            return mLocations.Values.ToList();
+        }
+
         public List<long> GetPossibleNextLocations(long location)
         {
             var node = mGraph.GetNode(location);
@@ -165,10 +182,32 @@ namespace AVGraphPrimitives
             return new Point2D(node.X, node.Y);
         }
 
-        public long RandomlyGenerateDestination()
+        /// <summary>
+        /// Get a random location. Location may be part of a graph that is not connected to the main graph.
+        /// </summary>
+        /// <returns>Id of the location</returns>
+        public long GetRandomLocation()
         {
             var rand = new Random();
             return mLocations.ElementAt(rand.Next(mLocations.Count)).Key;
+        }
+
+        /// <summary>
+        /// Gets a random location from a list of previously verified valid locations
+        /// </summary>
+        /// <returns></returns>
+        public long GetRandomValidLocation()
+        {
+            var rand = new Random();
+            return mValidLocations.ElementAt(rand.Next(mValidLocations.Count));
+        }
+
+        /// <summary>
+        /// Remove a location from the available locations dictionary.
+        /// </summary>
+        public void RemoveLocation(long nodeId)
+        {
+            mLocations.Remove(nodeId);
         }
     }
 }

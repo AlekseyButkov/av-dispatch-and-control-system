@@ -61,7 +61,7 @@ namespace AVController
             mCharge = startingCharge;
             mSim = sim;
             mStatus = status;
-            sim.TimeTick += OnTimeIncrement;
+            mSim.TimeTick += OnTimeIncrement;
         }
 
         private double GetTotalPathLength(List<GraphEdge> path)

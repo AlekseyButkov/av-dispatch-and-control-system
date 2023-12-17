@@ -16,6 +16,7 @@ namespace AVController
             Car = car;
         }
         public Vehicle? Car { get; set; }
+        public int ActiveRoute = 0;
         public int PersonId { get; }
         public long Start { get; }
         public long Destination { get; }

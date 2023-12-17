@@ -46,6 +46,6 @@ namespace AVGraphPrimitives
         /// Returns a location which is selected by random.
         /// </summary>
         /// <returns></returns>
-        long RandomlyGenerateDestination();
+        long GetRandomLocation();
     }
 }

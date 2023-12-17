@@ -84,7 +84,7 @@ namespace AVGraphPrimitives
         /// Gets all nodes which are not connected to anything
         /// </summary>
         /// <returns></returns>
-        public List<GraphNode> GetUnconnectedNodes()
+        public List<GraphNode> GetIsolatedNodes()
         {
             var nodes = new List<GraphNode>();
             foreach (GraphNode node in mNodesMap.Values)
@@ -95,6 +95,10 @@ namespace AVGraphPrimitives
             return nodes;
         }
 
+        /// <summary>
+        /// SLOW. Should only be used during setup.
+        /// </summary>
+        /// <returns></returns>
         public List<GraphNode> GetNodesWithConnections()
         {
             var nodes = mConnectionMap.Where(x => x.Value.Count != 0).Select(x => x.Key).ToList();
@@ -103,7 +107,7 @@ namespace AVGraphPrimitives
 
         /// <summary>
         /// Clear all nodes and edges
-        /// </summary>c
+        /// </summary>
         public void Clear()
         {
             mConnectionMap.Clear();
