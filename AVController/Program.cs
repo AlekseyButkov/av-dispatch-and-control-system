@@ -11,9 +11,21 @@ namespace AVController
                 Console.WriteLine("No GraphML input file supplied");
                 return;
             }
-            var sim = new WorldSimulation(5, args[0]);
+            Type agentType = typeof(IndependentDriverAgent);
+            switch (int.Parse(args[0]))
+            {
+                case 1:
+                    agentType = typeof(DispatchAgent);
+                    break;
+                default:
+                    agentType = typeof(IndependentDriverAgent);
+                    break;
+            }
+            Console.WriteLine($"Using agent: {agentType.Name}");
+            var sim = new WorldSimulation(agentType, 5, args[2]);
+            var hoursToSimulate = double.Parse(args[1]);
+            sim.SimulateHours(hoursToSimulate);
             //dispatcher.TestRoutes();
-            sim.BeginSimulation();
         }
     }
 }

@@ -12,23 +12,11 @@ namespace AVController
     /// <summary>
     /// Routing and control agent for vehicle fleet
     /// </summary>
-    public class DispatchAgent
+    public class DispatchAgent : AgentBase
     {
-        private int mFailedRoutes = 0;
-        private GraphMap mWorldMap = new();
-        private RouteFinder mRouteFinder;
-        private TripRequestCoordinator mCoordinator;
-        private WorldSimulation mSim;
-        private List<Trip> mTripsInProgress = new();
-        public DispatchAgent(WorldSimulation sim, TripRequestCoordinator tripRequester, RouteFinder routeFinder, GraphMap map)
-        {
-            mRouteFinder = routeFinder;
-            mWorldMap = map;
-            mCoordinator = tripRequester;
-            mSim = sim;
-            sim.TimeTick += OnTimeIncrement;
-        }
-
+        public DispatchAgent(WorldSimulation sim, TripRequestCoordinator tripRequester, RouteFinder routeFinder, GraphMap map) :
+            base(sim, tripRequester, routeFinder, map)
+        { }
         public void TestRoutes()
         {
             Stopwatch sw = new();
@@ -58,7 +46,7 @@ namespace AVController
         /// <summary>
         /// Create new trips from incoming requests, send cars to pick them up.
         /// </summary>
-        private void HandleNewRequests()
+        protected override void HandleNewRequests()
         {
             while (mCoordinator.NumPendingRequests != 0)
             {
@@ -107,7 +95,7 @@ namespace AVController
         /// <summary>
         /// Deal with vehicles who have just picked up or delivered riders
         /// </summary>
-        private void HandleInProgressTrips()
+        protected override void HandleInProgressTrips()
         {
             var tripsAwaitingRider = mTripsInProgress.Where(x => x.Car != null && x.Car.Status == VehicleStatus.AwaitingRider);
             foreach (var trip in tripsAwaitingRider)
@@ -128,12 +116,6 @@ namespace AVController
             var completedTrips = mTripsInProgress.Where(x => x.Car != null && x.Car.Status == VehicleStatus.Idle).ToList();
             foreach (var trip in completedTrips)
                 mTripsInProgress.Remove(trip);
-        }
-
-        private void OnTimeIncrement(object? sender,  EventArgs e)
-        {
-            HandleNewRequests();
-            HandleInProgressTrips();
         }
     }
 }

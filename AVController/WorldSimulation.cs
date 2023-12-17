@@ -16,7 +16,7 @@ namespace AVController
         private Random mRand = new();
         private RouteFinder mRouteFinder = new();
         private GraphMap mMap = new();
-        private IndependentDriverAgent mAgent;
+        private AgentBase mAgent;
         private TripRequestCoordinator mRequestCoordinator;
         private double mTimeStepInS = 5;
         private double mChargeRate = 0.034;
@@ -24,13 +24,17 @@ namespace AVController
         private int mVehicleIdHelper;
 
         public event EventHandler TimeTick = delegate { };
-        public WorldSimulation(double timeStep, string gmlFilePath, int population = DEFAULT_POPULATION)
+
+        public WorldSimulation(Type agentType, double timeStep, string gmlFilePath, int population = DEFAULT_POPULATION)
         {
             mPopulation = population;
             mTimeStepInS = timeStep;
             InitializeWorldMap(gmlFilePath);
             mRequestCoordinator = new(this, mMap, mTimeStepInS, 360);
-            mAgent = new(this, mRequestCoordinator, mRouteFinder, mMap);
+            var agentInstance = Activator.CreateInstance(agentType, this, mRequestCoordinator, mRouteFinder, mMap);
+            if (agentInstance == null)
+                throw new Exception("Failed to create agent instance");
+            mAgent = (AgentBase)agentInstance;
         }
 
         public double TimeStep { get { return mTimeStepInS; } }
@@ -72,12 +76,22 @@ namespace AVController
             return car;
         }
 
-        public void BeginSimulation()
+        public void SimulateHours(double hours)
         {
-            while (true)
+            var elapsedSteps = 0;
+            var timeStepsToSimulate = hours * 3600 / mTimeStepInS;
+            while (elapsedSteps < timeStepsToSimulate)
             {
                 IncrementTimeStep();
+                elapsedSteps++;
             }
+
+            Console.WriteLine($"-------------------------SIMULATION COMPLETE-------------------------");
+            Console.WriteLine($"Total distance driven: {Vehicle.TotalDistanceKm}km");
+            Console.WriteLine($"Total energy used: {Vehicle.TotalChargeUsed} units of charge");
+            Console.WriteLine($"Total cars: {mVehicles.Count()}");
+            Console.WriteLine($"Rides completed: {Vehicle.RidersTransported}");
+            Console.WriteLine($"Rides in progress: {mAgent.TripsInProgress}");
         }
     }
 }
