@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace AVGraphPrimitives
 {
+    /// <summary>
+    /// This interface has been extended from AIMA C#'s 'Map' interface https://github.com/aimacode/aima-csharp/blob/master/aima-csharp/environment/map/Map.cs
+    /// </summary>
     public interface IMap
     {
         /// <summary>
