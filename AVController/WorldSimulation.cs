@@ -1,5 +1,4 @@
-﻿using aima.core.environment.map;
-using AVGraphPrimitives;
+﻿using AVGraphPrimitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +30,7 @@ namespace AVController
             mTimeStepInS = timeStep;
             InitializeWorldMap(gmlFilePath);
             InitializeCars(startingCars);
-            mRequestCoordinator = new(this, mMap, mTimeStepInS, 360);
+            mRequestCoordinator = new(this, mMap, mTimeStepInS, 720);
             var agentInstance = Activator.CreateInstance(agentType, this, mRequestCoordinator, mRouteFinder, mMap);
             if (agentInstance == null)
                 throw new Exception("Failed to create agent instance");
