@@ -14,7 +14,8 @@ namespace AVController
         Charging,
         Transporting,
         PickingUpRider,
-        AwaitingRider
+        AwaitingRider,
+        RideComplete
     }
 
 
@@ -39,6 +40,7 @@ namespace AVController
         private int mIndexOnPath;
         private string mTripLog = "";
         private GraphMap mMap;
+        private Trip? mLatestTrip;
         private WorldSimulation mSim;
         private List<GraphEdge> mCurrentPath = new();
 
@@ -53,6 +55,11 @@ namespace AVController
         { get { return mStatus; } }
         public long Location
         { get { return mLastLocation; } }
+        public Trip? LatestTrip
+        {
+            get { return mLatestTrip; }
+            set { mLatestTrip = value; }
+        }
         public Vehicle(int id,
             WorldSimulation sim,
             GraphMap worldMap,
@@ -200,7 +207,7 @@ namespace AVController
                 mStatus = VehicleStatus.AwaitingRider;
             if (mStatus == VehicleStatus.Transporting)
             {
-                mStatus = VehicleStatus.Idle;
+                mStatus = VehicleStatus.RideComplete;
                 sRidersTransported++;
             }
             mDistanceRemainingOnCurrentHop = 0;
@@ -284,6 +291,15 @@ namespace AVController
                 case VehicleStatus.AwaitingRider:
                     break;
 
+                case VehicleStatus.RideComplete:
+                    if (mLatestTrip != null)
+                    {
+                        mSim.FreePersonId(mLatestTrip.PersonId);
+                        mLatestTrip.Complete = true;
+                    }
+                    mLatestTrip = null;
+                    mStatus = VehicleStatus.Idle;
+                    break;
                 default:
                     throw new NotImplementedException($"Vehicle status not implemented: {mStatus}");
             }

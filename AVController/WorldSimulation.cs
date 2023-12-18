@@ -25,11 +25,12 @@ namespace AVController
 
         public event EventHandler TimeTick = delegate { };
 
-        public WorldSimulation(Type agentType, double timeStep, string gmlFilePath, int population = DEFAULT_POPULATION)
+        public WorldSimulation(Type agentType, double timeStep, string gmlFilePath, int startingCars = 0, int population = DEFAULT_POPULATION)
         {
             mPopulation = population;
             mTimeStepInS = timeStep;
             InitializeWorldMap(gmlFilePath);
+            InitializeCars(startingCars);
             mRequestCoordinator = new(this, mMap, mTimeStepInS, 360);
             var agentInstance = Activator.CreateInstance(agentType, this, mRequestCoordinator, mRouteFinder, mMap);
             if (agentInstance == null)
@@ -46,6 +47,12 @@ namespace AVController
             TimeTick(this, EventArgs.Empty);
         }
 
+        private void InitializeCars(int numCars)
+        {
+            for (int i = 0; i < numCars; i++)
+                RequestNewVehicle();
+        }
+
         private void InitializeWorldMap(string gmlPath)
         {
             GraphMLParser.GraphMLParser parser = new();
@@ -57,18 +64,22 @@ namespace AVController
 
         public int? ReserveAvailablePersonId()
         {
-            var person = mRand.Next(0, mPopulation);
+            var person = mRand.Next(mPopulation);
             while (mReservedPeople.Contains(person))
             {
                 if (mReservedPeople.Count == mPopulation)
                     return null;
-                person = mRand.Next(0, mPopulation);
+                person = mRand.Next(mPopulation);
             }
             return person;
         }
 
+        public void FreePersonId(int personId)
+        { mReservedPeople.Remove(personId);}
+
         public Vehicle RequestNewVehicle()
         {
+            Console.WriteLine($"New vehicle requested, current total: {mVehicles.Count}");
             var loc = mMap.GetRandomValidLocation();
             var car = new Vehicle(mVehicleIdHelper, this, mMap, loc, VehicleStatus.Idle);
             mVehicleIdHelper++;
@@ -85,6 +96,11 @@ namespace AVController
             {
                 IncrementTimeStep();
                 elapsedSteps++;
+                var percentComplete = (elapsedSteps / timeStepsToSimulate) * 100;
+                var elapsedMinutes = (DateTime.Now - start).TotalMinutes;
+                var totalMinutesEstimate = elapsedMinutes / (percentComplete / 100);
+                var remainingMinutes = totalMinutesEstimate - elapsedMinutes;
+                Console.WriteLine($"{percentComplete}% simulated), time remaining: {Math.Floor(remainingMinutes / 60)}h{remainingMinutes%60}m");
             }
 
             Console.WriteLine($"-------------------------SIMULATION COMPLETE-------------------------");
@@ -93,8 +109,8 @@ namespace AVController
             Console.WriteLine($"Total cars: {mVehicles.Count()}");
             Console.WriteLine($"Rides completed: {Vehicle.RidersTransported}");
             Console.WriteLine($"Rides in progress: {mAgent.TripsInProgress}");
-            Console.WriteLine($"Total rider waiting time: {mAgent.TimeSpentWaiting%3600}:{mAgent.TimeSpentWaiting%60}");
-            Console.WriteLine($"Average rider waiting time: {(mAgent.TimeSpentWaiting / Vehicle.RidersTransported)%60} min");
+            Console.WriteLine($"Total rider waiting time: {Math.Floor(mAgent.TimeSpentWaiting/3600)}:{mAgent.TimeSpentWaiting%60}");
+            Console.WriteLine($"Average rider waiting time: {((mAgent.TimeSpentWaiting / 60) / Vehicle.RidersTransported)} min");
             Console.WriteLine($"Simulation took {(DateTime.Now - start)}");
         }
     }

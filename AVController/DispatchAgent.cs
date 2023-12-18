@@ -76,6 +76,7 @@ namespace AVController
                         }
                     }
                     car = closestCar;
+                    car.LatestTrip = request;
                 }
 
                 // Test whether full route is part of main connected graph, ignore the request if it is not
@@ -108,12 +109,12 @@ namespace AVController
             }
         }
 
-
         /// <summary>
         /// Deal with vehicles who have just picked up or delivered riders
         /// </summary>
         protected override void HandleInProgressTrips()
         {
+            // TODO: rewrite this into a single for loop, this is just inefficient
             var tripsAwaitingVehicle = mTripsInProgress.Where(x => x.Car != null && x.Car.Status == VehicleStatus.PickingUpRider);
             foreach (var trip in tripsAwaitingVehicle)
                 trip.TimeWaitingInS += mSim.TimeStep;
@@ -133,7 +134,7 @@ namespace AVController
                 }
                 trip.Car.BeginTrip(path);
             }
-            var completedTrips = mTripsInProgress.Where(x => x.Car != null && x.Car.Status == VehicleStatus.Idle).ToList();
+            var completedTrips = mTripsInProgress.Where(x => x.Complete).ToList();
             foreach (var trip in completedTrips)
             {
                 sTotalTimeSpentWaiting += trip.TimeWaitingInS;
