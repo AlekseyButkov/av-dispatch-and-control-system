@@ -123,6 +123,29 @@ namespace AVController
             return path;
         }
 
+        public double FindPathLength(List<long> pathIds, TypeOfOptimality optimalityMetric)
+        {
+            if (mWorldMap.IsEmpty)
+                throw new Exception("World map is empty");
+            var path = mWorldMap.ConstructTravelPath(pathIds);
+            var length = 0.0;
+            for (var i = 0; i < path.Count - 1; ++i)
+            {
+                switch (optimalityMetric)
+                {
+                    case TypeOfOptimality.Time:
+                        length += path[i].Length / (path[i].MaxSpeedKPH * 0.2777778);
+                        break;
+                    case TypeOfOptimality.Distance:
+                        length += path[i].Length;
+                        break;
+                    default:
+                        throw new NotSupportedException($"Type of optimality '{optimalityMetric}' not supported");
+                }
+            }
+            return length;
+        }
+
         /// <summary>
         /// Tests the node by routing to random locations from it. High degree of failure indicates that the node is part of a disjoint subgraph.
         /// </summary>

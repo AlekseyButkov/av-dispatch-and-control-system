@@ -93,6 +93,7 @@ namespace AVController
                     distance = mMap.GetDistanceMetric(fromLocation, toLocation);
                     break;
                 case TypeOfOptimality.Time:
+                    distance = mMap.GetTimeMetric(fromLocation, toLocation);
                     break;
                 default: throw new NotImplementedException($"Edge length type {lengthType} not implemented");
 

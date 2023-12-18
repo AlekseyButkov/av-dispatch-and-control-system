@@ -59,7 +59,24 @@ namespace AVController
                 if (idleCars.Count == 0)
                     car = mSim.RequestNewVehicle();
                 else
-                    car = idleCars[0];
+                {
+                    // find closest car
+                    var closestTime = double.PositiveInfinity;
+                    Vehicle closestCar = idleCars[0];
+                    foreach ( var idleCar in idleCars)
+                    {
+                        var path = mRouteFinder.FindRoute(idleCar.Location, request.Start, TypeOfOptimality.Time);
+                        if (path.Count == 0)
+                            continue;
+                        var timeAway = mRouteFinder.FindPathLength(path, TypeOfOptimality.Time);
+                        if (timeAway < closestTime)
+                        {
+                            closestTime = timeAway;
+                            closestCar = idleCar;
+                        }
+                    }
+                    car = closestCar;
+                }
 
                 // Test whether full route is part of main connected graph, ignore the request if it is not
                 var pathToRider = mRouteFinder.FindRoute(car.Location, request.Start, TypeOfOptimality.Time);
@@ -97,6 +114,9 @@ namespace AVController
         /// </summary>
         protected override void HandleInProgressTrips()
         {
+            var tripsAwaitingVehicle = mTripsInProgress.Where(x => x.Car != null && x.Car.Status == VehicleStatus.PickingUpRider);
+            foreach (var trip in tripsAwaitingVehicle)
+                trip.TimeWaitingInS += mSim.TimeStep;
             var tripsAwaitingRider = mTripsInProgress.Where(x => x.Car != null && x.Car.Status == VehicleStatus.AwaitingRider);
             foreach (var trip in tripsAwaitingRider)
             {
@@ -115,7 +135,10 @@ namespace AVController
             }
             var completedTrips = mTripsInProgress.Where(x => x.Car != null && x.Car.Status == VehicleStatus.Idle).ToList();
             foreach (var trip in completedTrips)
+            {
+                sTotalTimeSpentWaiting += trip.TimeWaitingInS;
                 mTripsInProgress.Remove(trip);
+            }
         }
     }
 }

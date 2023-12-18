@@ -204,7 +204,7 @@ namespace AVController
                 sRidersTransported++;
             }
             mDistanceRemainingOnCurrentHop = 0;
-            mTripLog += "\nTrip complete!";
+            mTripLog += $"\nVehicle {Id} - Trip complete!";
             Console.WriteLine(mTripLog);
             mTripLog = "";
         }

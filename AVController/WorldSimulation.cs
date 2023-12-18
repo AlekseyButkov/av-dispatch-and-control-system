@@ -78,6 +78,7 @@ namespace AVController
 
         public void SimulateHours(double hours)
         {
+            var start = DateTime.Now;
             var elapsedSteps = 0;
             var timeStepsToSimulate = hours * 3600 / mTimeStepInS;
             while (elapsedSteps < timeStepsToSimulate)
@@ -92,6 +93,9 @@ namespace AVController
             Console.WriteLine($"Total cars: {mVehicles.Count()}");
             Console.WriteLine($"Rides completed: {Vehicle.RidersTransported}");
             Console.WriteLine($"Rides in progress: {mAgent.TripsInProgress}");
+            Console.WriteLine($"Total rider waiting time: {mAgent.TimeSpentWaiting%3600}:{mAgent.TimeSpentWaiting%60}");
+            Console.WriteLine($"Average rider waiting time: {(mAgent.TimeSpentWaiting / Vehicle.RidersTransported)%60} min");
+            Console.WriteLine($"Simulation took {(DateTime.Now - start)}");
         }
     }
 }
